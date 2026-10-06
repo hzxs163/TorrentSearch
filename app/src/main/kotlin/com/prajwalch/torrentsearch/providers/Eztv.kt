@@ -1,12 +1,12 @@
 package com.prajwalch.torrentsearch.providers
 
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.domain.model.Category
 import com.prajwalch.torrentsearch.domain.model.MagnetUri
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
 import com.prajwalch.torrentsearch.domain.model.Torrent
 import com.prajwalch.torrentsearch.domain.model.TorrentDetails
 import com.prajwalch.torrentsearch.network.NetworkClient
-import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.provider.TorrentDetailsProvider
 import com.prajwalch.torrentsearch.util.TorrentDateParser
@@ -19,11 +19,15 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 
-class Eztv(private val networkClient: NetworkClient) : SearchProvider, TorrentDetailsProvider {
+class Eztv(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+) : MultiDomainSearchProvider(networkClient, domainSource), TorrentDetailsProvider {
     override val id = "eztvx"
     override val name = "Eztv"
-    override val url = "https://eztvx.to"
-    override val cloudflareSolverUrl = "$url/home"
+    override val defaultDomains = listOf("https://eztv.tf", "https://eztvx.to")
+    override val domainKeys get() = listOf("eztv", id)
+    override val cloudflareSolverUrl get() = "$url/home"
     override val supportedCategories = setOf(Category.Series)
     override val safety = SearchProviderSafety.Safe
     override val isCloudflareProtected = true
@@ -31,8 +35,12 @@ class Eztv(private val networkClient: NetworkClient) : SearchProvider, TorrentDe
 
     private val resultsPageParser = EztvResultsPageParser(id, name)
 
-    override suspend fun search(query: String, category: Category): List<Torrent> {
-        val requestUrl = "$url/search/$query"
+    override suspend fun searchOn(
+        domain: String,
+        query: String,
+        category: Category,
+    ): List<Torrent> {
+        val requestUrl = "$domain/search/$query"
         // Without setting that cookie, it returns results without magnet links.
         val responseHtml = networkClient.getText(
             url = requestUrl,

@@ -20,6 +20,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -57,11 +58,13 @@ class ProviderDomainRepository(
         .map { preferences -> parseTimestamp(preferences[DOMAINS_UPDATED_AT]) }
 
     override fun domainsFor(
-        providerId: SearchProviderId,
+        providerIds: List<SearchProviderId>,
         defaultDomains: List<String>,
     ): List<String> {
         val defaults = normalizeDomains(defaultDomains)
-        val remote = normalizeDomains(domainsByProviderId[providerId].orEmpty())
+        val remote = providerIds
+            .flatMap { providerId -> domainsByProviderId[providerId].orEmpty() }
+            .let(::normalizeDomains)
 
         // Known-good addresses of the source come first, the ones bundled with
         // the app are kept as a fallback.

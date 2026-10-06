@@ -1,6 +1,7 @@
 package com.prajwalch.torrentsearch.providers
 
 import com.prajwalch.torrentsearch.R
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.domain.model.Category
 import com.prajwalch.torrentsearch.domain.model.MagnetUri
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
@@ -8,7 +9,6 @@ import com.prajwalch.torrentsearch.domain.model.Torrent
 import com.prajwalch.torrentsearch.domain.model.TorrentDetails
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.provider.LatestTorrentsProvider
-import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.provider.TopTorrentsProvider
 import com.prajwalch.torrentsearch.provider.TorrentDetailsProvider
@@ -27,14 +27,17 @@ import org.jsoup.nodes.Element
  * Extracts torrent results from the HTML search page.
  * This provider uses InfoHash, not Magnet URIs.
  */
-class LimeTorrents(private val networkClient: NetworkClient) :
-    SearchProvider,
+class LimeTorrents(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+) :
+    MultiDomainSearchProvider(networkClient, domainSource),
     TorrentDetailsProvider,
     LatestTorrentsProvider,
     TopTorrentsProvider {
     override val id = "limetorrents"
     override val name = "LimeTorrents"
-    override val url = "https://limetorrents.fun"
+    override val defaultDomains = listOf("https://www.limetorrents.fun", "https://limetorrents.fun")
     override val supportedCategories = setOf(
         Category.Anime,
         Category.Apps,
@@ -51,9 +54,13 @@ class LimeTorrents(private val networkClient: NetworkClient) :
 
     private val resultsPageParser = LimeTorrentsResultsPageParser(id, name)
 
-    override suspend fun search(query: String, category: Category): List<Torrent> {
+    override suspend fun searchOn(
+        domain: String,
+        query: String,
+        category: Category,
+    ): List<Torrent> {
         val categoryString = getCategorySearchString(category)
-        val requestUrl = "$url/search/$categoryString/$query/date/1/"
+        val requestUrl = "$domain/search/$categoryString/$query/date/1/"
 
         val responseHtml = networkClient.getText(url = requestUrl)
         return resultsPageParser.parse(html = responseHtml, pageUrl = requestUrl)

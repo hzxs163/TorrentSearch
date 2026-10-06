@@ -1,12 +1,12 @@
 package com.prajwalch.torrentsearch.providers
 
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.domain.model.Category
 import com.prajwalch.torrentsearch.domain.model.MagnetUri
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
 import com.prajwalch.torrentsearch.domain.model.Torrent
 import com.prajwalch.torrentsearch.domain.model.TorrentDetails
 import com.prajwalch.torrentsearch.network.NetworkClient
-import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.provider.TorrentDetailsProvider
 import com.prajwalch.torrentsearch.util.TorrentDateParser
@@ -18,19 +18,26 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
-class FileMood(private val networkClient: NetworkClient) : SearchProvider, TorrentDetailsProvider {
+class FileMood(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+) : MultiDomainSearchProvider(networkClient, domainSource), TorrentDetailsProvider {
     override val id = "filemood"
     override val name = "FileMood"
-    override val url = "https://filemood.com"
+    override val defaultDomains = listOf("https://filemood.com")
     override val supportedCategories = setOf(Category.Other)
     override val safety = SearchProviderSafety.Safe
     override val enabledByDefault = false
 
     private val resultsPageParser = FileMoodResultsPageParser(id, name)
 
-    override suspend fun search(query: String, category: Category): List<Torrent> {
+    override suspend fun searchOn(
+        domain: String,
+        query: String,
+        category: Category,
+    ): List<Torrent> {
         val requestUrl = buildString {
-            append(url)
+            append(domain)
             append("/result")
             append("?q=$query")
             append("+in%3Atitle")

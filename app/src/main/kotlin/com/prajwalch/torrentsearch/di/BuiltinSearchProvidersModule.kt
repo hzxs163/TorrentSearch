@@ -12,6 +12,7 @@ import com.prajwalch.torrentsearch.providers.BangumiMoe
 import com.prajwalch.torrentsearch.providers.BitSearch
 import com.prajwalch.torrentsearch.providers.BlueRoms
 import com.prajwalch.torrentsearch.providers.Bt4g
+import com.prajwalch.torrentsearch.providers.Btfox
 import com.prajwalch.torrentsearch.providers.Btsow
 import com.prajwalch.torrentsearch.providers.Cctv10
 import com.prajwalch.torrentsearch.providers.Cilibaike
@@ -81,7 +82,8 @@ private fun provideBuiltinSearchProviders(
         BitSearch(networkClient),
         BlueRoms(networkClient),
         Bt4g(networkClient),
-        Btsow(networkClient),
+        Btfox(networkClient, domainSource),
+        Btsow(networkClient, domainSource),
         Cctv10(networkClient, domainSource),
         Cilibaike(networkClient, domainSource),
         Cilibao(networkClient, domainSource),
@@ -91,13 +93,13 @@ private fun provideBuiltinSearchProviders(
         Dmhy(networkClient),
         EpubLibre(networkClient),
         Ext(networkClient),
-        Eztv(networkClient),
-        FileMood(networkClient),
+        Eztv(networkClient, domainSource),
+        FileMood(networkClient, domainSource),
         FitGirlRepacks(networkClient),
         Hufeng(networkClient, domainSource),
         InternetArchive(networkClient),
         Knaben(networkClient),
-        LimeTorrents(networkClient),
+        LimeTorrents(networkClient, domainSource),
         LinuxTracker(networkClient),
         MegaPeer(networkClient),
         Miaocili(networkClient, domainSource),
@@ -110,8 +112,9 @@ private fun provideBuiltinSearchProviders(
         Rutor(networkClient),
         SubsPlease(networkClient),
         Sukebei(networkClient),
+        Taocili(networkClient, domainSource),
         ThePirateBay(networkClient),
-        TheRarBg(networkClient),
+        TheRarBg(networkClient, domainSource),
         ThirteenThirtySevenX(networkClient),
         TokyoToshokan(networkClient),
         Torrent9(networkClient),

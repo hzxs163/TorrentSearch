@@ -1,5 +1,6 @@
 package com.prajwalch.torrentsearch.providers
 
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.domain.model.Category
 import com.prajwalch.torrentsearch.domain.model.MagnetUri
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
@@ -11,7 +12,6 @@ import com.prajwalch.torrentsearch.extension.getLong
 import com.prajwalch.torrentsearch.extension.getObject
 import com.prajwalch.torrentsearch.extension.getString
 import com.prajwalch.torrentsearch.network.NetworkClient
-import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.provider.TorrentDetailsProvider
 import com.prajwalch.torrentsearch.util.FileSizeUtils
@@ -25,17 +25,24 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 
-class Btsow(private val networkClient: NetworkClient) : SearchProvider, TorrentDetailsProvider {
+class Btsow(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+) : MultiDomainSearchProvider(networkClient, domainSource), TorrentDetailsProvider {
     override val id = "btsow"
     override val name = "Btsow"
-    override val url = "https://btsow.live"
+    override val defaultDomains = listOf("https://btsow.live")
     override val supportedCategories = setOf(Category.Other)
     override val safety = SearchProviderSafety.Safe
     override val enabledByDefault = false
 
-    private val resultsJsonParser = BtsowResultsJsonParser(id, name, url)
+    private val resultsJsonParser = BtsowResultsJsonParser(id, name)
 
-    override suspend fun search(query: String, category: Category): List<Torrent> {
+    override suspend fun searchOn(
+        domain: String,
+        query: String,
+        category: Category,
+    ): List<Torrent> {
         // [{"search":"one"},30,3]
         val requestPayload = buildJsonArray {
             addJsonObject {
@@ -46,34 +53,30 @@ class Btsow(private val networkClient: NetworkClient) : SearchProvider, TorrentD
             // Page number
             add(JsonPrimitive(1))
         }
-        val requestUrl = "$API_BASE_URL/search"
+        val requestUrl = "$domain/bts/data/api/search"
         val responseJson = networkClient.postJson(url = requestUrl, payload = requestPayload)
             ?: return emptyList()
 
-        return resultsJsonParser.parse(responseJson)
+        return resultsJsonParser.parse(responseJson, domain)
     }
 
     override suspend fun getDetails(detailsPageUrl: String): TorrentDetails? {
         val infoHash = detailsPageUrl.takeLastWhile { it != '/' }
         val requestPayload = buildJsonArray { add(JsonPrimitive(infoHash)) }
-        val requestUrl = "$API_BASE_URL/magnet"
+        val requestUrl = "$url/bts/data/api/magnet"
         val responseJson = networkClient.postJson(url = requestUrl, payload = requestPayload)
             ?: return null
 
         return BtsowDetailsJsonParser.parse(responseJson)
-    }
-
-    private companion object {
-        private const val API_BASE_URL = "https://btsow.live/bts/data/api"
     }
 }
 
 private class BtsowResultsJsonParser(
     private val providerId: SearchProviderId,
     private val providerName: String,
-    private val providerUrl: String,
 ) {
-    suspend fun parse(responseJson: JsonElement): List<Torrent> = withContext(Dispatchers.Default) {
+    suspend fun parse(responseJson: JsonElement, domain: String): List<Torrent> =
+        withContext(Dispatchers.Default) {
         responseJson.asObject()
             .getArray("data")
             ?.map { it.asObject() }
@@ -96,7 +99,7 @@ private class BtsowResultsJsonParser(
                     size = size,
                     providerName = providerName,
                     magnetUri = MagnetUri.Available(magnetUri),
-                    detailsPageUrl = "$providerUrl/magnet/detail/$infoHash",
+                    detailsPageUrl = "$domain/magnet/detail/$infoHash",
                 )
             }
             .orEmpty()

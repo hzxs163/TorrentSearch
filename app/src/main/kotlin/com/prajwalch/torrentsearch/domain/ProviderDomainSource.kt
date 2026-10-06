@@ -20,13 +20,16 @@ interface ProviderDomainSource {
     val lastUpdatedAt: Flow<Instant?>
 
     /**
-     * Returns the domains of the provider matching [providerId], ordered from
+     * Returns the domains of the providers matching [providerIds], ordered from
      * the most to the least currently trusted one.
+     *
+     * A provider can be published under more than one key, since the same source
+     * is often known by several names.
      *
      * [defaultDomains] are the domains bundled with the app and are always kept
      * as a fallback when the remote list doesn't know the provider.
      */
-    fun domainsFor(providerId: SearchProviderId, defaultDomains: List<String>): List<String>
+    fun domainsFor(providerIds: List<SearchProviderId>, defaultDomains: List<String>): List<String>
 
     /** Reads the persisted domain list into memory, if not done already. */
     suspend fun ensureLoaded()

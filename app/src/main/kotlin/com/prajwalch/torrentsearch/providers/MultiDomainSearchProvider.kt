@@ -7,6 +7,7 @@ import com.prajwalch.torrentsearch.extension.stripHtmlTags
 import com.prajwalch.torrentsearch.network.CloudflareChallengeException
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.provider.SearchProvider
+import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.util.FileSizeUtils
 import com.prajwalch.torrentsearch.util.TorrentDateParser
 
@@ -36,8 +37,15 @@ abstract class MultiDomainSearchProvider(
     /** Domains bundled with the app, used when nothing fresher is known. */
     protected abstract val defaultDomains: List<String>
 
+    /**
+     * Keys under which this provider's domains are published.
+     *
+     * Defaults to [id], which is the name the domain list knows a provider by.
+     */
+    protected open val domainKeys: List<SearchProviderId> get() = listOf(id)
+
     /** Domains currently known for this provider, most trusted first. */
-    protected val domains: List<String> get() = domainSource.domainsFor(id, defaultDomains)
+    protected val domains: List<String> get() = domainSource.domainsFor(domainKeys, defaultDomains)
 
     override val url: String get() = domains.firstOrNull() ?: defaultDomains.first()
 
@@ -104,7 +112,7 @@ internal fun parseProviderDate(raw: String?): Instant? {
 
     val formats = listOf("yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd")
 
-    return formats.firstNotNullOrNull { format ->
+    return formats.firstNotNullOfOrNull { format ->
         runCatching { TorrentDateParser.parse(date = value, format = format) }.getOrNull()
     }
         ?: runCatching { TorrentDateParser.parseIso(value) }.getOrNull()

@@ -1,6 +1,7 @@
 package com.prajwalch.torrentsearch.providers
 
 import com.prajwalch.torrentsearch.R
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.domain.model.Category
 import com.prajwalch.torrentsearch.domain.model.MagnetUri
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
@@ -9,7 +10,6 @@ import com.prajwalch.torrentsearch.domain.model.TorrentDetails
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.provider.LatestTorrentsProvider
 import com.prajwalch.torrentsearch.provider.MagnetUriProvider
-import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.provider.TopTorrentsProvider
 import com.prajwalch.torrentsearch.provider.TorrentDetailsProvider
@@ -23,15 +23,19 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
-class TheRarBg(private val networkClient: NetworkClient) :
-    SearchProvider,
+class TheRarBg(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+) :
+    MultiDomainSearchProvider(networkClient, domainSource),
     LatestTorrentsProvider,
     TopTorrentsProvider,
     MagnetUriProvider,
     TorrentDetailsProvider {
     override val id = "therarbag"
     override val name = "TheRarBg"
-    override val url = "https://therarbg.com"
+    override val defaultDomains = listOf("https://therarbg.com")
+    override val domainKeys get() = listOf("therarbg", id)
     override val supportedCategories = setOf(
         Category.Anime,
         Category.Apps,
@@ -50,9 +54,13 @@ class TheRarBg(private val networkClient: NetworkClient) :
 
     private val resultsPageParser = TheRarBgResultsPageParser(id, name)
 
-    override suspend fun search(query: String, category: Category): List<Torrent> {
+    override suspend fun searchOn(
+        domain: String,
+        query: String,
+        category: Category,
+    ): List<Torrent> {
         val requestUrl = buildString {
-            append(url)
+            append(domain)
             append("/get-posts")
             append("/keywords:$query")
 
