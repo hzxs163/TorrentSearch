@@ -1,13 +1,7 @@
 package com.prajwalch.torrentsearch.ui.home
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,38 +98,19 @@ fun HomeScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
                 uiState = uiState,
+                providersCheckState = providersCheckState,
                 onCategorySelect = { viewModel.setCategory(it) },
                 onFilterSearchSuggestions = { viewModel.filterSearchSuggestions(it) },
                 onSearch = onSearch,
                 onBrowse = onBrowse,
                 onHideRecentSearches = { viewModel.disableShowRecentSearches() },
-            )
-
-            AnimatedContent(
-                modifier = Modifier.fillMaxWidth(),
-                targetState = providersCheckState,
-                transitionSpec = {
-                    (fadeIn() + slideInVertically { -it }) togetherWith
-                            (slideOutVertically { it } + fadeOut())
+                onDismissProvidersCheck = { viewModel.finishProvidersCheck() },
+                onNavigateToSearchProviders = {
+                    onNavigateToSearchProviders()
+                    viewModel.finishProvidersCheck()
                 },
-                contentKey = { it.animationContentKey() },
-            ) { targetState ->
-                targetState?.let {
-                    ProvidersCheckNotificationBar(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(MaterialTheme.spaces.large)
-                            .fillMaxWidth(),
-                        state = it,
-                        onDismiss = { viewModel.finishProvidersCheck() },
-                        onNavigateToSearchProviders = {
-                            onNavigateToSearchProviders()
-                            viewModel.finishProvidersCheck()
-                        },
-                        onRetry = { viewModel.checkProviders() },
-                    )
-                }
-            }
+                onRetryProvidersCheck = { viewModel.checkProviders() },
+            )
 
             PullToRefreshDefaults.Indicator(
                 modifier = Modifier.align(Alignment.TopCenter),
@@ -145,9 +120,6 @@ fun HomeScreen(
         }
     }
 }
-
-private fun ProvidersCheckState?.animationContentKey() =
-    this?.let { ProvidersCheckState::class }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,11 +161,15 @@ private fun HomeScreenTopBar(
 @Composable
 private fun HomeScreenContent(
     uiState: HomeUiState,
+    providersCheckState: ProvidersCheckState?,
     onCategorySelect: (Category) -> Unit,
     onFilterSearchSuggestions: (String) -> Unit,
     onSearch: (String, Category) -> Unit,
     onBrowse: (Category) -> Unit,
     onHideRecentSearches: () -> Unit,
+    onDismissProvidersCheck: () -> Unit,
+    onNavigateToSearchProviders: () -> Unit,
+    onRetryProvidersCheck: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val showRecentSearches =
@@ -228,6 +204,20 @@ private fun HomeScreenContent(
                 suggestions = uiState.searchSuggestions,
                 onFilterSuggestions = onFilterSearchSuggestions
             )
+        }
+
+        AnimatedVisibility(providersCheckState != null) {
+            providersCheckState?.let {
+                ProvidersCheckNotificationBar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MaterialTheme.spaces.large),
+                    state = it,
+                    onDismiss = onDismissProvidersCheck,
+                    onNavigateToSearchProviders = onNavigateToSearchProviders,
+                    onRetry = onRetryProvidersCheck,
+                )
+            }
         }
 
         AnimatedVisibility(showRecentSearches) {
