@@ -60,8 +60,8 @@ class Btfox(
     }
 
     private companion object {
-        // The site's own default ordering; the app re-sorts the results locally.
-        private const val SORT = "time"
+        // Ordered by relevance, as the app sorts the results locally.
+        private const val SORT = "rele"
         private const val PAGE = "1"
 
         private val MAGNET_LINK =
