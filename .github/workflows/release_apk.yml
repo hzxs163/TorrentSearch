@@ -34,36 +34,34 @@ jobs:
       - name: Assemble release APK
         run: ./gradlew app:assembleRelease
 
-      - name: Name the artifact
-        run: |
-          if [ -n "${GITHUB_REF_NAME}" ] && [ "${GITHUB_REF_NAME}" != "${GITHUB_REF_NAME#v}" ]; then
-            echo "APK_NAME=magnet-search-${GITHUB_REF_NAME}.apk" >> "$GITHUB_ENV"
-          else
-            echo "APK_NAME=magnet-search-$(date -u +%Y%m%d-%H%M).apk" >> "$GITHUB_ENV"
-          fi
-
-      - name: Generate SHA-256 checksum
+      - name: Name and checksum the APK
         run: |
           cd app/build/outputs/apk/release
-          sha256sum app-release.apk > SHA256_CHECKSUM.txt
+
+          if [ -n "${GITHUB_REF_NAME}" ] && [ "${GITHUB_REF_NAME}" != "${GITHUB_REF_NAME#v}" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            tag="v$(date -u +%Y%m%d-%H%M)"
+          fi
+
+          mv app-release.apk "magnet-search-${tag}.apk"
+          sha256sum "magnet-search-${tag}.apk" > SHA256_CHECKSUM.txt
           cat SHA256_CHECKSUM.txt
+
+          echo "RELEASE_TAG=${tag}" >> "$GITHUB_ENV"
+          echo "APK_NAME=magnet-search-${tag}.apk" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="${GITHUB_REF_NAME}"
-          if [ -z "${tag}" ] || [ "${tag}" = "${GITHUB_HEAD_REF}" ]; then
-            tag="$(date -u +v%Y%m%d-%H%M)"
-          fi
-
           notes="Built by GitHub Actions from commit ${GITHUB_SHA}.
           Signed with the stable key in app/keystore (alias magnetsearch).
           Verify with: sha256sum -c SHA256_CHECKSUM.txt"
 
-          gh release create "$tag" \
+          gh release create "$RELEASE_TAG" \
             --target "$GITHUB_SHA" \
-            --title "Magnet Search $tag" \
+            --title "Magnet Search $RELEASE_TAG" \
             --notes "$notes" \
-            "app/build/outputs/apk/release/app-release.apk#${APK_NAME}" \
+            "app/build/outputs/apk/release/${APK_NAME}" \
             app/build/outputs/apk/release/SHA256_CHECKSUM.txt
