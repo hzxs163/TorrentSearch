@@ -280,6 +280,7 @@
     <string name="settings_group_network">Network</string>
     <string name="settings_dns_over_https">DNS over HTTPS (DoH)</string>
     <string name="settings_dns_over_https_label_provider">Provider</string>
+    <string name="settings_dns_over_https_default">OS default</string>
     <string name="settings_dns_over_https_summary">Resolves domain names through a secure connection instead of your network\'s default DNS</string>
     <string name="settings_check_providers">Check providers on startup</string>
     <string name="settings_check_providers_summary">Checks providers access and notifies if any need unlocking</string>

@@ -79,8 +79,9 @@ fun sortOrderStringResource(sortOrder: SortOrder): String {
     return stringResource(id = resId)
 }
 
+@Composable
 fun DohProvider.displayName(): String = when (this) {
-    DohProvider.Default -> "OS default"
+    DohProvider.Default -> stringResource(id = R.string.settings_dns_over_https_default)
     DohProvider.Cloudflare -> "Cloudflare"
     DohProvider.NextDNS -> "NextDNS"
     DohProvider.Google -> "Google"
