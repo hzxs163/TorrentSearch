@@ -13,6 +13,7 @@ val domainModule = module {
             torznabConfigRepository = get(),
             settingsRepository = get(),
             networkClient = get(),
+            domainSource = get(),
         )
     }
 

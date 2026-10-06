@@ -22,17 +22,29 @@ import com.prajwalch.torrentsearch.di.databaseModule
 import com.prajwalch.torrentsearch.di.domainModule
 import com.prajwalch.torrentsearch.di.networkModule
 import com.prajwalch.torrentsearch.di.repositoryModule
+import com.prajwalch.torrentsearch.domain.SearchProviderManager
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.ui.crash.CrashActivity
 import com.prajwalch.torrentsearch.util.TorrentSearchExceptionHandler
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.plugin.module.dsl.module
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+
 class TorrentSearchApplication : Application(), SingletonImageLoader.Factory {
     private val networkClient: NetworkClient by inject()
+    private val searchProviderManager: SearchProviderManager by inject()
+
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -48,6 +60,12 @@ class TorrentSearchApplication : Application(), SingletonImageLoader.Factory {
                 repositoryModule,
             )
             module<ViewModelModule>()
+        }
+
+        // Sources frequently move to a new domain, so the app starts every
+        // session with an up-to-date list of their addresses.
+        applicationScope.launch {
+            searchProviderManager.updateProviderDomainsIfOlderThan(DOMAINS_MAX_AGE)
         }
 
         if (BuildConfig.DEBUG) {
@@ -95,5 +113,10 @@ class TorrentSearchApplication : Application(), SingletonImageLoader.Factory {
             .memoryCachePolicy(CachePolicy.ENABLED)
             .networkCachePolicy(CachePolicy.ENABLED)
             .build()
+    }
+
+    private companion object {
+        /** How old the stored domain list may get before it is refreshed. */
+        private val DOMAINS_MAX_AGE: Duration = 6.hours
     }
 }

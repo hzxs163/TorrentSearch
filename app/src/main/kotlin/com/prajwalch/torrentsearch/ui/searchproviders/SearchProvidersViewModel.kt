@@ -3,6 +3,7 @@ package com.prajwalch.torrentsearch.ui.searchproviders
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import com.prajwalch.torrentsearch.domain.ProviderDomainsUpdateResult
 import com.prajwalch.torrentsearch.domain.ProtectionStatusUpdateResult
 import com.prajwalch.torrentsearch.domain.SearchProviderManager
 import com.prajwalch.torrentsearch.domain.model.Category
@@ -23,6 +24,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 import org.koin.core.annotation.KoinViewModel
+
+import java.time.Instant
+
 import kotlin.time.Duration.Companion.seconds
 
 data class SearchProvidersUiState(
@@ -31,6 +35,8 @@ data class SearchProvidersUiState(
     val totalNumProviders: Int = 0,
     val enabledProvidersCount: Int = 0,
     val protectionUpdateState: ProtectionUpdateState = ProtectionUpdateState.Idle,
+    val domainsUpdateState: DomainsUpdateState = DomainsUpdateState.Idle,
+    val domainsLastUpdatedAt: Instant? = null,
 )
 
 data class SearchProviderFilter(
@@ -54,6 +60,21 @@ sealed interface ProtectionUpdateState {
     ) : ProtectionUpdateState
 }
 
+sealed interface DomainsUpdateState {
+    data object Idle : DomainsUpdateState
+    data object Updating : DomainsUpdateState
+    data object Error : DomainsUpdateState
+    data class Complete(
+        val numProviders: Int,
+        val numDomains: Int,
+    ) : DomainsUpdateState
+}
+
+private data class DomainsState(
+    val updateState: DomainsUpdateState = DomainsUpdateState.Idle,
+    val lastUpdatedAt: Instant? = null,
+)
+
 /** ViewModel which handles the business logic of Search providers screen. */
 @KoinViewModel
 class SearchProvidersViewModel(
@@ -65,15 +86,26 @@ class SearchProvidersViewModel(
     private val protectionUpdateState =
         MutableStateFlow<ProtectionUpdateState>(ProtectionUpdateState.Idle)
 
+    private val domainsUpdateState =
+        MutableStateFlow<DomainsUpdateState>(DomainsUpdateState.Idle)
+
+    private val domainsState = combine(
+        domainsUpdateState,
+        searchProviderManager.domainsLastUpdatedAt,
+        ::DomainsState,
+    )
+
     val uiState: StateFlow<SearchProvidersUiState> =
         combine(
             providerInfosProcessor.result,
             protectionUpdateState,
+            domainsState,
             searchProviderManager.getProvidersCount(),
             searchProviderManager.getEnabledProvidersCount(),
         ) {
                 processorResult,
                 protectionUpdateState,
+                domainsState,
                 providersCount,
                 enabledProvidersCount,
             ->
@@ -83,6 +115,8 @@ class SearchProvidersViewModel(
                 totalNumProviders = providersCount,
                 enabledProvidersCount = enabledProvidersCount,
                 protectionUpdateState = protectionUpdateState,
+                domainsUpdateState = domainsState.updateState,
+                domainsLastUpdatedAt = domainsState.lastUpdatedAt,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -139,6 +173,27 @@ class SearchProvidersViewModel(
 
     fun resetProtectionUpdateState() {
         protectionUpdateState.value = ProtectionUpdateState.Idle
+    }
+
+    /** Downloads the latest domains of the search providers. */
+    fun updateProviderDomains() {
+        domainsUpdateState.value = DomainsUpdateState.Updating
+
+        viewModelScope.launch {
+            val result = searchProviderManager.updateProviderDomains()
+
+            domainsUpdateState.value = when (result) {
+                ProviderDomainsUpdateResult.Error -> DomainsUpdateState.Error
+                is ProviderDomainsUpdateResult.Success -> DomainsUpdateState.Complete(
+                    numProviders = result.numProviders,
+                    numDomains = result.numDomains,
+                )
+            }
+        }
+    }
+
+    fun resetDomainsUpdateState() {
+        domainsUpdateState.value = DomainsUpdateState.Idle
     }
 
     /** Resets enabled search providers to default. */

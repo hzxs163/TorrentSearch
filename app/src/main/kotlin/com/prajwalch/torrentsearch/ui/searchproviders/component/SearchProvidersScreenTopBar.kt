@@ -34,6 +34,7 @@ fun SearchProvidersScreenTopBar(
     onEnableAll: () -> Unit,
     onDisableAll: () -> Unit,
     onUpdateProtectionStatus: () -> Unit,
+    onUpdateDomains: () -> Unit,
     onResetToDefault: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: @Composable (() -> Unit)? = null,
@@ -88,6 +89,10 @@ fun SearchProvidersScreenTopBar(
                         onUpdateProtectionStatus()
                         showOverflowMenu = false
                     },
+                    onUpdateDomains = {
+                        onUpdateDomains()
+                        showOverflowMenu = false
+                    },
                     onResetToDefault = {
                         onResetToDefault()
                         showOverflowMenu = false
@@ -122,6 +127,7 @@ private fun TopBarOverflowMenu(
     onEnableAll: () -> Unit,
     onDisableAll: () -> Unit,
     onUpdateProtectionStatus: () -> Unit,
+    onUpdateDomains: () -> Unit,
     onResetToDefault: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -167,6 +173,20 @@ private fun TopBarOverflowMenu(
                 Text(stringResource(R.string.search_providers_action_update_protection_status))
             },
             onClick = onUpdateProtectionStatus,
+        )
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_update),
+                    contentDescription = stringResource(
+                        R.string.search_providers_action_update_domains,
+                    ),
+                )
+            },
+            text = {
+                Text(stringResource(R.string.search_providers_action_update_domains))
+            },
+            onClick = onUpdateDomains,
         )
         DropdownMenuItem(
             leadingIcon = {

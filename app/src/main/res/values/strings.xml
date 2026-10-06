@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Torrent Search</string>
+    <string name="app_name">Magnet Search</string>
     <string name="button_done">Done</string>
     <string name="button_cancel">Cancel</string>
     <string name="button_try_again">Try again</string>
@@ -189,6 +189,7 @@
     <string name="search_providers_action_enable_all">Enable all</string>
     <string name="search_providers_action_disable_all">Disable all</string>
     <string name="search_providers_action_update_protection_status">Update protection status</string>
+    <string name="search_providers_action_update_domains">Update source domains</string>
     <string name="search_providers_action_reset">Reset to default</string>
     <string name="search_providers_reset_to_default_title">Reset to default?</string>
     <string name="search_providers_reset_to_default_text">Enabled search providers will reset to the default set and cookies for protection-unlocked providers will be cleared.</string>
@@ -219,6 +220,11 @@
     <string name="search_providers_state_updating_protection_status">Updating protection status…</string>
     <string name="search_providers_state_protection_status_update_failed">Something went wrong</string>
     <string name="search_providers_state_protection_status_update_complete">%1$d unlocked, %2$d need unlocking</string>
+    <string name="search_providers_state_updating_domains">Updating source domains…</string>
+    <string name="search_providers_state_domains_update_complete">Updated domains of %1$d sources, %2$d addresses in total</string>
+    <string name="search_providers_state_domains_update_failed">Couldn\'t download the source domain list</string>
+    <string name="search_providers_state_domains_update_never">No domain list downloaded yet</string>
+    <string name="search_providers_domains_last_updated_format">Source domains updated %1$s</string>
     <string name="search_providers_chip_category">Category</string>
     <string name="search_providers_chip_protection">Protection</string>
     <string name="search_providers_protection_protected">Protected</string>

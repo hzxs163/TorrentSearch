@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prajwalch.torrentsearch.R
 import com.prajwalch.torrentsearch.provider.SearchProviderId
 import com.prajwalch.torrentsearch.ui.component.FilterSearchBar
+import com.prajwalch.torrentsearch.ui.extension.toRelativeTimeSpanString
 import com.prajwalch.torrentsearch.ui.searchproviders.component.CloudflareChallengeBottomSheet
 import com.prajwalch.torrentsearch.ui.searchproviders.component.ResetToDefaultDialog
 import com.prajwalch.torrentsearch.ui.searchproviders.component.SearchProviderFilterRow
@@ -118,7 +119,50 @@ fun SearchProvidersScreen(
         }
     }
 
+    LaunchedEffect(uiState.domainsUpdateState) {
+        when (val domainsUpdateState = uiState.domainsUpdateState) {
+            DomainsUpdateState.Idle -> {
+                /* no op */
+            }
+
+            DomainsUpdateState.Updating -> {
+                snackbarHostState.showSnackbar(
+                    message = localResources.getString(R.string.search_providers_state_updating_domains),
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+
+            DomainsUpdateState.Error -> {
+                val result = snackbarHostState.showSnackbar(
+                    message = localResources.getString(
+                        R.string.search_providers_state_domains_update_failed,
+                    ),
+                    actionLabel = localResources.getString(
+                        R.string.search_providers_button_try_again,
+                    ),
+                    withDismissAction = true,
+                )
+
+                when (result) {
+                    SnackbarResult.Dismissed -> viewModel.resetDomainsUpdateState()
+                    SnackbarResult.ActionPerformed -> viewModel.updateProviderDomains()
+                }
+            }
+
+            is DomainsUpdateState.Complete -> {
+                val message = localResources.getString(
+                    R.string.search_providers_state_domains_update_complete,
+                    domainsUpdateState.numProviders,
+                    domainsUpdateState.numDomains,
+                )
+                snackbarHostState.showSnackbar(message)
+                viewModel.resetDomainsUpdateState()
+            }
+        }
+    }
+
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     var protectedProvider by rememberSaveable { mutableStateOf<ProtectedProvider?>(null) }
 
     protectedProvider?.let { (searchProviderId, solverUrl) ->
@@ -175,6 +219,7 @@ fun SearchProvidersScreen(
                 onEnableAll = viewModel::enableAllSearchProviders,
                 onDisableAll = viewModel::disableAllSearchProviders,
                 onUpdateProtectionStatus = viewModel::updateProtectionStatus,
+                onUpdateDomains = viewModel::updateProviderDomains,
                 onResetToDefault = { showResetToDefaultDialog = true },
                 subtitle = {
                     val searchProvidersSummary = stringResource(
@@ -183,6 +228,17 @@ fun SearchProvidersScreen(
                         uiState.totalNumProviders,
                     )
                     Text(searchProvidersSummary)
+
+                    val lastUpdatedAt = uiState.domainsLastUpdatedAt
+                    val domainsSummary = if (lastUpdatedAt == null) {
+                        stringResource(R.string.search_providers_state_domains_update_never)
+                    } else {
+                        stringResource(
+                            R.string.search_providers_domains_last_updated_format,
+                            lastUpdatedAt.toRelativeTimeSpanString(),
+                        )
+                    }
+                    Text(domainsSummary)
                 },
                 scrollBehavior = scrollBehavior,
             )

@@ -15,21 +15,29 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.prajwalch.torrentsearch"
+        applicationId = "com.prajwalch.torrentsearch.cn"
         minSdk = 25
         targetSdk = 37
-        versionCode = 19
-        versionName = "0.5.2"
+        versionCode = 90
+        versionName = "0.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = System.getenv("SIGNING_STORE_FILE")?.let(::file)
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            // Signed with a stable key kept in this repository, so that any new
+            // build installs over an already installed one. Environment
+            // variables still take precedence for a private signing setup.
+            val bundledStore = file("keystore/magnet-search.p12")
+            val environmentStore = System.getenv("SIGNING_STORE_FILE")?.takeIf { it.isNotBlank() }
+
+            storeFile = environmentStore?.let(::file) ?: bundledStore.takeIf { it.exists() }
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")?.takeIf { it.isNotBlank() }
+                ?: "magnet-search"
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")?.takeIf { it.isNotBlank() } ?: "magnetsearch"
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+                ?: "magnet-search"
         }
     }
 

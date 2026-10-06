@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">磁力搜索</string>
     <string name="button_done">完成</string>
     <string name="button_cancel">取消</string>
     <string name="nsfw">不适宜内容</string>
@@ -51,6 +52,7 @@
     <string name="search_providers_action_enable_all">全部开启</string>
     <string name="search_providers_action_disable_all">全部关闭</string>
     <string name="search_providers_action_update_protection_status">更新保护状态</string>
+    <string name="search_providers_action_update_domains">更新源域名</string>
     <string name="search_providers_action_reset">设为默认</string>
     <string name="search_providers_list_action_edit">修改配置文件</string>
     <string name="search_providers_list_action_delete">删除</string>
@@ -179,6 +181,11 @@
     <string name="search_providers_state_challenge_solved_title">验证已通过！</string>
     <string name="search_providers_state_updating_protection_status">正在更新保护状态…</string>
     <string name="search_providers_state_protection_status_update_complete">已解锁 %1$d 个，%2$d 个需要解锁</string>
+    <string name="search_providers_state_updating_domains">正在更新源域名…</string>
+    <string name="search_providers_state_domains_update_complete">已更新 %1$d 个源的域名，共 %2$d 个地址</string>
+    <string name="search_providers_state_domains_update_failed">源域名列表下载失败</string>
+    <string name="search_providers_state_domains_update_never">还没有下载过域名列表</string>
+    <string name="search_providers_domains_last_updated_format">源域名更新于 %1$s</string>
     <string name="settings_clear_viewed_torrents_dialog_button_clear">清除</string>
     <string name="settings_clear_viewed_torrents">清除已浏览的种子</string>
     <string name="settings_clear_viewed_torrents_summary">清空你已经打开的种子列表</string>

@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+import java.time.Instant
+
+import kotlin.time.Duration
+
 sealed interface ProtectionStatusUpdateResult {
     data object Error : ProtectionStatusUpdateResult
 
@@ -42,7 +46,23 @@ class SearchProviderManager(
     private val torznabConfigRepository: TorznabConfigRepository,
     private val settingsRepository: SettingsRepository,
     private val networkClient: NetworkClient,
+    private val domainSource: ProviderDomainSource,
 ) {
+    /** Timestamp of the last successful refresh of the providers' domains. */
+    val domainsLastUpdatedAt: Flow<Instant?> = domainSource.lastUpdatedAt
+
+    /**
+     * Downloads the domain list published for the search providers, so that
+     * providers which moved to another domain keep working.
+     */
+    suspend fun updateProviderDomains(): ProviderDomainsUpdateResult = domainSource.update()
+
+    /** Refreshes the providers' domains when the stored list is too old. */
+    suspend fun updateProviderDomainsIfOlderThan(maxAge: Duration) {
+        domainSource.ensureLoaded()
+        domainSource.updateIfOlderThan(maxAge)
+    }
+
     /**
      * Returns a [Flow] of [SearchProviderInfo]s of all providers.
      */
