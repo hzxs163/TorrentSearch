@@ -1,5 +1,6 @@
 package com.prajwalch.torrentsearch.di
 
+import com.prajwalch.torrentsearch.domain.ProviderDomainSource
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.provider.SearchProvider
 import com.prajwalch.torrentsearch.providers.AniLibria
@@ -12,12 +13,15 @@ import com.prajwalch.torrentsearch.providers.BitSearch
 import com.prajwalch.torrentsearch.providers.BlueRoms
 import com.prajwalch.torrentsearch.providers.Bt4g
 import com.prajwalch.torrentsearch.providers.Btsow
+import com.prajwalch.torrentsearch.providers.Cilibaike
+import com.prajwalch.torrentsearch.providers.Ciliso
 import com.prajwalch.torrentsearch.providers.Dmhy
 import com.prajwalch.torrentsearch.providers.EpubLibre
 import com.prajwalch.torrentsearch.providers.Ext
 import com.prajwalch.torrentsearch.providers.Eztv
 import com.prajwalch.torrentsearch.providers.FileMood
 import com.prajwalch.torrentsearch.providers.FitGirlRepacks
+import com.prajwalch.torrentsearch.providers.Hufeng
 import com.prajwalch.torrentsearch.providers.InternetArchive
 import com.prajwalch.torrentsearch.providers.Knaben
 import com.prajwalch.torrentsearch.providers.LimeTorrents
@@ -46,12 +50,17 @@ import com.prajwalch.torrentsearch.providers.Torrentz
 import com.prajwalch.torrentsearch.providers.UIndex
 import com.prajwalch.torrentsearch.providers.XXXClub
 import com.prajwalch.torrentsearch.providers.XXXTracker
+import com.prajwalch.torrentsearch.providers.Xiaocao
 import com.prajwalch.torrentsearch.providers.Yts
+import com.prajwalch.torrentsearch.providers.Yuhuage
 import com.prajwalch.torrentsearch.providers.ZeroMagnet
 
 import org.koin.dsl.module
 
-private fun provideBuiltinSearchProviders(networkClient: NetworkClient): List<SearchProvider> =
+private fun provideBuiltinSearchProviders(
+    networkClient: NetworkClient,
+    domainSource: ProviderDomainSource,
+): List<SearchProvider> =
     listOf(
         AniLibria(networkClient),
         AniRena(networkClient),
@@ -63,12 +72,15 @@ private fun provideBuiltinSearchProviders(networkClient: NetworkClient): List<Se
         BlueRoms(networkClient),
         Bt4g(networkClient),
         Btsow(networkClient),
+        Cilibaike(networkClient, domainSource),
+        Ciliso(networkClient, domainSource),
         Dmhy(networkClient),
         EpubLibre(networkClient),
         Ext(networkClient),
         Eztv(networkClient),
         FileMood(networkClient),
         FitGirlRepacks(networkClient),
+        Hufeng(networkClient, domainSource),
         InternetArchive(networkClient),
         Knaben(networkClient),
         LimeTorrents(networkClient),
@@ -97,10 +109,14 @@ private fun provideBuiltinSearchProviders(networkClient: NetworkClient): List<Se
         UIndex(networkClient),
         XXXClub(networkClient),
         XXXTracker(networkClient),
+        Xiaocao(networkClient, domainSource),
         Yts(networkClient),
+        Yuhuage(networkClient, domainSource),
         ZeroMagnet(networkClient),
     )
 
 val builtinSearchProvidersModule = module {
-    single<List<SearchProvider>> { provideBuiltinSearchProviders(networkClient = get()) }
+    single<List<SearchProvider>> {
+        provideBuiltinSearchProviders(networkClient = get(), domainSource = get())
+    }
 }
