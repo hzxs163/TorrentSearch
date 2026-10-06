@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,7 +32,25 @@ jobs:
       run: chmod +x gradlew
 
     - name: Assemle debug APK with gradlew
-      run: ./gradlew app:assembleDebug
+      run: |
+        set -o pipefail
+        ./gradlew app:assembleDebug --console=plain 2>&1 | tee "$RUNNER_TEMP/debug-build.log"
+
+    - name: Publish build errors on the commit
+      if: failure()
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        errors=$(grep -E "^e: |^> Task .*FAILED|What went wrong|Unresolved reference|error:" \
+          "$RUNNER_TEMP/debug-build.log" | head -c 5000)
+
+        gh api --method POST \
+          "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+          -f body="Debug build failed on this commit.
+
+        ```
+        ${errors:-no compiler error matched, see the workflow log}
+        ```"
 
     - name: Rename APK file to torrentsearch-debug.apk
       run: |

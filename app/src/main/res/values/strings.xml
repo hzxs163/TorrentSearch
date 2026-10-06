@@ -290,4 +290,5 @@
     <string name="limetorrents_unsafe_reason">Not technically unsafe, but it ignores category selection. Choose carefully.</string>
     <string name="tpb_unsafe_reason">Many malware reports due to inadequate moderation.</string>
     <string name="therarbg_unsafe_reason">Clone of original RARBG with many fake torrents. Use extreme caution.</string>
+    <string name="tpbweb_unsafe_reason">The Pirate Bay mirror with inadequate moderation, so expect fake and malware torrents.</string>
 </resources>
