@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -43,6 +44,13 @@ fun RoundedDropdownMenu(
     border: BorderStroke? = null,
     content: @Composable (ColumnScope.() -> Unit),
 ) {
+    // Some devices ship dynamic color palettes whose surface container tones carry
+    // alpha, which lets the list behind a floating menu show through. Compositing
+    // keeps the intended tone but makes it solid.
+    val opaqueContainerColor = containerColor.compositeOver(
+        MaterialTheme.colorScheme.background.copy(alpha = 1f),
+    )
+
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
@@ -50,7 +58,7 @@ fun RoundedDropdownMenu(
         offset = offset,
         scrollState = scrollState,
         shape = shape,
-        containerColor = containerColor,
+        containerColor = opaqueContainerColor,
         tonalElevation = tonalElevation,
         shadowElevation = shadowElevation,
         border = border,
