@@ -41,16 +41,37 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        errors=$(grep -E "^e: |^> Task .*FAILED|What went wrong|Unresolved reference|error:" \
-          "$RUNNER_TEMP/debug-build.log" | head -c 5000)
+        log="$RUNNER_TEMP/debug-build.log"
+
+        if [ ! -f "$log" ]; then
+          body="Debug build failed before the gradle step produced a log."
+        else
+          errors=$(grep -E "^e: |^> Task .*FAILED|What went wrong|Unresolved reference|error:|FAILURE" \
+            "$log" | head -c 4000)
+          tail_lines=$(tail -c 3000 "$log")
+          head_lines=$(head -c 1200 "$log")
+
+          body="Debug build failed on this commit (log size: $(wc -c < "$log") bytes).
+
+        ### matched errors
+        \`\`\`
+        ${errors:-none matched}
+        \`\`\`
+
+        ### log start
+        \`\`\`
+        ${head_lines}
+        \`\`\`
+
+        ### log end
+        \`\`\`
+        ${tail_lines}
+        \`\`\`"
+        fi
 
         gh api --method POST \
           "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
-          -f body="Debug build failed on this commit.
-
-        ```
-        ${errors:-no compiler error matched, see the workflow log}
-        ```"
+          -f body="$body"
 
     - name: Rename APK file to torrentsearch-debug.apk
       run: |
