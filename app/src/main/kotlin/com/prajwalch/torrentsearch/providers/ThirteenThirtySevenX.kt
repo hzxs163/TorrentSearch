@@ -29,7 +29,8 @@ class ThirteenThirtySevenX(private val networkClient: NetworkClient) :
     TorrentDetailsProvider {
     override val id = "1337x"
     override val name = "1337x"
-    override val url = "https://1337x.to"
+    override val url = "https://1337x.st"
+    override val alternateUrlDomains = listOf("https://1337x.to")
     override val supportedCategories = setOf(
         Category.Anime,
         Category.Apps,
