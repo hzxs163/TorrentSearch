@@ -94,6 +94,12 @@
     <string name="settings_dns_over_https">DNS over HTTPS（DoH）</string>
     <string name="settings_dns_over_https_label_provider">提供商</string>
     <string name="settings_dns_over_https_summary">通过安全连接解析域名，而非使用网络默认 DNS</string>
+    <string name="settings_group_content_and_privacy">内容与隐私</string>
+    <string name="settings_show_recent_searches">显示最近搜索</string>
+    <string name="settings_show_recent_searches_summary">在首页显示最近 5 次搜索</string>
+    <string name="settings_group_network">网络</string>
+    <string name="settings_check_providers">启动时检查源</string>
+    <string name="settings_check_providers_summary">启动时检查各源能否访问，如果有源需要解锁会提示你</string>
     <string name="settings_group_about">关于</string>
     <string name="settings_version">版本</string>
     <string name="settings_source_code">源代码</string>
