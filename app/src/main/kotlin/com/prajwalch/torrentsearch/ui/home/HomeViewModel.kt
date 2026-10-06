@@ -49,6 +49,7 @@ sealed interface ProvidersCheckState {
     data class Complete(
         val numLockedProviders: Int,
         val numUnlockedProviders: Int,
+        val numUnreachableProviders: Int,
     ) : ProvidersCheckState
 }
 
@@ -156,19 +157,7 @@ class HomeViewModel(
             val checkProvidersOnStartup = settingsRepository.checkProvidersOnStartup.firstOrNull()
             if (checkProvidersOnStartup == null || !checkProvidersOnStartup) return@launch
 
-            _providersCheckState.value = ProvidersCheckState.Checking
-
-            val result = searchProviderManager.updateProtectionStatus()
-            _providersCheckState.value = when (result) {
-                ProtectionStatusUpdateResult.Error -> ProvidersCheckState.Error
-
-                is ProtectionStatusUpdateResult.Success -> {
-                    ProvidersCheckState.Complete(
-                        result.numLockedProviders,
-                        result.numUnlockedProviders,
-                    )
-                }
-            }
+            runProvidersCheck()
         }
     }
 
@@ -206,18 +195,23 @@ class HomeViewModel(
 
     fun checkProviders() {
         viewModelScope.launch {
-            _providersCheckState.value = ProvidersCheckState.Checking
+            runProvidersCheck()
+        }
+    }
 
-            val result = searchProviderManager.updateProtectionStatus()
-            _providersCheckState.value = when (result) {
-                ProtectionStatusUpdateResult.Error -> ProvidersCheckState.Error
+    private suspend fun runProvidersCheck() {
+        _providersCheckState.value = ProvidersCheckState.Checking
 
-                is ProtectionStatusUpdateResult.Success -> {
-                    ProvidersCheckState.Complete(
-                        result.numLockedProviders,
-                        result.numUnlockedProviders,
-                    )
-                }
+        val result = searchProviderManager.updateProtectionStatus()
+        _providersCheckState.value = when (result) {
+            ProtectionStatusUpdateResult.Error -> ProvidersCheckState.Error
+
+            is ProtectionStatusUpdateResult.Success -> {
+                ProvidersCheckState.Complete(
+                    numLockedProviders = result.numLockedProviders,
+                    numUnlockedProviders = result.numUnlockedProviders,
+                    numUnreachableProviders = result.numUnreachableProviders,
+                )
             }
         }
     }

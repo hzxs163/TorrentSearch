@@ -9,6 +9,7 @@ import com.prajwalch.torrentsearch.domain.model.SearchProviderOrigin
 import com.prajwalch.torrentsearch.domain.model.SearchProviderSafety
 import com.prajwalch.torrentsearch.domain.model.TorznabConfig
 import com.prajwalch.torrentsearch.domain.model.isUnsafe
+import com.prajwalch.torrentsearch.network.ConnectivityChecker
 import com.prajwalch.torrentsearch.network.NetworkClient
 import com.prajwalch.torrentsearch.provider.LatestTorrentsProvider
 import com.prajwalch.torrentsearch.provider.MagnetUriProvider
@@ -35,6 +36,7 @@ sealed interface ProtectionStatusUpdateResult {
     data class Success(
         val numLockedProviders: Int,
         val numUnlockedProviders: Int,
+        val numUnreachableProviders: Int,
     ) : ProtectionStatusUpdateResult
 }
 
@@ -47,6 +49,7 @@ class SearchProviderManager(
     private val settingsRepository: SettingsRepository,
     private val networkClient: NetworkClient,
     private val domainSource: ProviderDomainSource,
+    private val connectivityChecker: ConnectivityChecker,
 ) {
     /** Timestamp of the last successful refresh of the providers' domains. */
     val domainsLastUpdatedAt: Flow<Instant?> = domainSource.lastUpdatedAt
@@ -300,12 +303,17 @@ class SearchProviderManager(
 
     /**
      * Updates the protection status of all protected providers.
+     *
+     * A provider whose homepage can't even be reached is counted as unreachable
+     * and keeps its previous status, since being blocked by the local network is
+     * not the same as being locked by Cloudflare.
      */
     suspend fun updateProtectionStatus(): ProtectionStatusUpdateResult =
         withContext(Dispatchers.IO) {
             val protectedProviders = builtinProviders.filter { it.isCloudflareProtected }
             var numLockedProviders = 0
-            var numFailedProviders = 0
+            var numUnlockedProviders = 0
+            var numUnreachableProviders = 0
 
             for (provider in protectedProviders) {
                 val providerId = provider.id
@@ -316,13 +324,14 @@ class SearchProviderManager(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Exception) {
-                    numFailedProviders += 1
+                    numUnreachableProviders += 1
                     continue
                 }
 
                 if (!isUrlChallenged) {
                     // Unlock it
                     settingsRepository.addUnlockedProviderId(providerId)
+                    numUnlockedProviders += 1
                     continue
                 }
 
@@ -336,12 +345,15 @@ class SearchProviderManager(
                 numLockedProviders += 1
             }
 
-            if (numFailedProviders == protectedProviders.size) {
+            val nothingDetermined = numUnreachableProviders == protectedProviders.size
+
+            if (nothingDetermined && !connectivityChecker.isInternetAvailable()) {
                 ProtectionStatusUpdateResult.Error
             } else {
                 ProtectionStatusUpdateResult.Success(
                     numLockedProviders = numLockedProviders,
-                    numUnlockedProviders = protectedProviders.size - numLockedProviders,
+                    numUnlockedProviders = numUnlockedProviders,
+                    numUnreachableProviders = numUnreachableProviders,
                 )
             }
         }

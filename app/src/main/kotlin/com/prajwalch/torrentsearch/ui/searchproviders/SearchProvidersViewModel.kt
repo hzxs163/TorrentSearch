@@ -57,6 +57,7 @@ sealed interface ProtectionUpdateState {
     data class Complete(
         val numLockedProviders: Int,
         val numUnlockedProviders: Int,
+        val numUnreachableProviders: Int,
     ) : ProtectionUpdateState
 }
 
@@ -163,8 +164,9 @@ class SearchProvidersViewModel(
                 ProtectionStatusUpdateResult.Error -> ProtectionUpdateState.Error
                 is ProtectionStatusUpdateResult.Success -> {
                     ProtectionUpdateState.Complete(
-                        result.numLockedProviders,
-                        result.numUnlockedProviders,
+                        numLockedProviders = result.numLockedProviders,
+                        numUnlockedProviders = result.numUnlockedProviders,
+                        numUnreachableProviders = result.numUnreachableProviders,
                     )
                 }
             }

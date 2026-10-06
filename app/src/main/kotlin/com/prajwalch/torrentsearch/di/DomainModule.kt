@@ -14,6 +14,7 @@ val domainModule = module {
             settingsRepository = get(),
             networkClient = get(),
             domainSource = get(),
+            connectivityChecker = get(),
         )
     }
 

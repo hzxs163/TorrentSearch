@@ -181,6 +181,13 @@
     <string name="search_providers_state_challenge_solved_title">验证已通过！</string>
     <string name="search_providers_state_updating_protection_status">正在更新保护状态…</string>
     <string name="search_providers_state_protection_status_update_complete">已解锁 %1$d 个，%2$d 个需要解锁</string>
+    <string name="search_providers_state_protection_status_update_partial_complete">已解锁 %1$d 个，%2$d 个需要解锁，%3$d 个在当前网络下无法访问</string>
+    <string name="search_providers_state_protection_status_update_failed">保护状态更新失败</string>
+    <string name="home_status_providers_checking">正在检查源…</string>
+    <string name="home_status_providers_check_complete">源检查完成</string>
+    <string name="home_status_providers_check_failed">源检查失败</string>
+    <string name="home_status_providers_check_failed_no_connection_subtitle">设备当前没有网络连接，无法检查任何源</string>
+    <string name="home_message_please_wait">请稍候</string>
     <string name="search_providers_state_updating_domains">正在更新源域名…</string>
     <string name="search_providers_state_domains_update_complete">已更新 %1$d 个源的域名，共 %2$d 个地址</string>
     <string name="search_providers_state_domains_update_failed">源域名列表下载失败</string>

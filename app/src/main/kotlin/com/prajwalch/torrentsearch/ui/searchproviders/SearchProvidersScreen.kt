@@ -108,11 +108,20 @@ fun SearchProvidersScreen(
             }
 
             is ProtectionUpdateState.Complete -> {
-                val message = localResources.getString(
-                    R.string.search_providers_state_protection_status_update_complete,
-                    protectionUpdateState.numUnlockedProviders,
-                    protectionUpdateState.numLockedProviders,
-                )
+                val message = if (protectionUpdateState.numUnreachableProviders > 0) {
+                    localResources.getString(
+                        R.string.search_providers_state_protection_status_update_partial_complete,
+                        protectionUpdateState.numUnlockedProviders,
+                        protectionUpdateState.numLockedProviders,
+                        protectionUpdateState.numUnreachableProviders,
+                    )
+                } else {
+                    localResources.getString(
+                        R.string.search_providers_state_protection_status_update_complete,
+                        protectionUpdateState.numUnlockedProviders,
+                        protectionUpdateState.numLockedProviders,
+                    )
+                }
                 snackbarHostState.showSnackbar(message)
                 viewModel.resetProtectionUpdateState()
             }

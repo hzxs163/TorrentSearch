@@ -135,15 +135,26 @@ fun ProvidersCheckNotificationBar(
                             }
 
                             ProvidersCheckState.Error -> {
-                                stringResource(R.string.home_status_providers_check_failed_subtitle)
+                                stringResource(
+                                    R.string.home_status_providers_check_failed_no_connection_subtitle,
+                                )
                             }
 
                             is ProvidersCheckState.Complete -> {
-                                stringResource(
-                                    R.string.search_providers_state_protection_status_update_complete,
-                                    targetState.numUnlockedProviders,
-                                    targetState.numLockedProviders,
-                                )
+                                if (targetState.numUnreachableProviders > 0) {
+                                    stringResource(
+                                        R.string.search_providers_state_protection_status_update_partial_complete,
+                                        targetState.numUnlockedProviders,
+                                        targetState.numLockedProviders,
+                                        targetState.numUnreachableProviders,
+                                    )
+                                } else {
+                                    stringResource(
+                                        R.string.search_providers_state_protection_status_update_complete,
+                                        targetState.numUnlockedProviders,
+                                        targetState.numLockedProviders,
+                                    )
+                                }
                             }
                         }
 

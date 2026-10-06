@@ -88,6 +88,7 @@
     <string name="home_status_providers_checking">Checking providers…</string>
     <string name="home_status_providers_check_failed">Providers check failed</string>
     <string name="home_status_providers_check_failed_subtitle">Something went wrong</string>
+    <string name="home_status_providers_check_failed_no_connection_subtitle">No internet connection, so no source could be checked</string>
     <string name="home_status_providers_check_complete">Providers check complete</string>
     <string name="home_message_please_wait">Please wait</string>
 
@@ -220,6 +221,7 @@
     <string name="search_providers_state_updating_protection_status">Updating protection status…</string>
     <string name="search_providers_state_protection_status_update_failed">Something went wrong</string>
     <string name="search_providers_state_protection_status_update_complete">%1$d unlocked, %2$d need unlocking</string>
+    <string name="search_providers_state_protection_status_update_partial_complete">%1$d unlocked, %2$d need unlocking, %3$d unreachable on this network</string>
     <string name="search_providers_state_updating_domains">Updating source domains…</string>
     <string name="search_providers_state_domains_update_complete">Updated domains of %1$d sources, %2$d addresses in total</string>
     <string name="search_providers_state_domains_update_failed">Couldn\'t download the source domain list</string>
